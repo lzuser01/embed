@@ -6,6 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
   <style>
     html, body {
       margin: 0;
@@ -17,58 +18,103 @@
     #fondo {
       position: absolute;
       top: 0; left: 0;
-      width: 100%;
-      height: 100%;
+      width: 100%; height: 100%;
       background-size: cover;
       background-position: center;
       z-index: 10;
       transition: opacity 0.5s ease;
-    }
-    #controles {
-      position: absolute;
-      bottom: 30px;
-      left: 50%;
-      transform: translateX(-50%);
-      display: flex;
-      gap: 20px;
-      z-index: 20;
-    }
-    .btn-control {
-      background: rgba(0,0,0,0.7);
-      color: gold;
-      border: 2px solid gold;
-      padding: 12px 16px;
-      border-radius: 9999px;
-      font-size: 18px;
-      font-weight: bold;
-      cursor: pointer;
-      transition: background 0.3s;
-    }
-    .btn-control:hover {
-      background: rgba(255, 215, 0, 0.3);
-    }
-    #progreso {
-      width: 90%;
-      height: 8px;
-      background: #444;
-      border-radius: 5px;
-      overflow: hidden;
-      position: absolute;
-      bottom: 10px;
-      left: 50%;
-      transform: translateX(-50%);
-      z-index: 20;
-    }
-    #progreso .barra {
-      height: 100%;
-      background: gold;
-      width: 0%;
     }
     video {
       width: 100%;
       height: 100%;
       object-fit: contain;
       background: black;
+    }
+
+    #controles {
+      position: absolute;
+      top: 50%;
+      left: 0;
+      right: 0;
+      z-index: 20;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      transform: translateY(-50%);
+      padding: 0 20px;
+    }
+
+    .btn-control {
+      background: rgba(0, 0, 0, 0.6);
+      border: 2px solid gold;
+      color: gold;
+      padding: 14px;
+      border-radius: 50%;
+      font-size: 24px;
+      cursor: pointer;
+      transition: background 0.3s ease;
+    }
+
+    .btn-control:hover {
+      background: rgba(255, 215, 0, 0.3);
+    }
+
+    .center-btn {
+      position: absolute;
+      left: 50%;
+      transform: translateX(-50%);
+    }
+
+    #barra-container {
+      position: absolute;
+      bottom: 10px;
+      left: 0;
+      right: 0;
+      padding: 0 15px;
+      z-index: 20;
+      color: white;
+      font-size: 14px;
+      font-family: sans-serif;
+    }
+
+    #progreso {
+      width: 100%;
+      height: 4px;
+      background: #333;
+      border-radius: 2px;
+      overflow: hidden;
+      margin: 4px 0;
+      position: relative;
+    }
+
+    #progreso .barra {
+      height: 100%;
+      background: red;
+      width: 0%;
+    }
+
+    #tiempos {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 4px;
+    }
+
+    #btn-full {
+      position: absolute;
+      right: 20px;
+      bottom: 18px;
+      z-index: 25;
+      font-size: 18px;
+      color: gold;
+      background: rgba(0,0,0,0.6);
+      border: 2px solid gold;
+      border-radius: 50%;
+      padding: 10px;
+      cursor: pointer;
+    }
+
+    #btn-full:hover {
+      background: rgba(255, 215, 0, 0.2);
     }
   </style>
 </head>
@@ -79,14 +125,30 @@
   <video id="video" controls playsinline></video>
 
   <div id="controles">
-    <button class="btn-control" onclick="retroceder()">⏪ 10s</button>
-    <button class="btn-control" id="togglePlay">⏸️</button>
-    <button class="btn-control" onclick="adelantar()">10s ⏩</button>
+    <button class="btn-control" onclick="retroceder()">
+      <i class="fas fa-undo"></i>
+    </button>
+    <button class="btn-control center-btn" id="togglePlay">
+      <i class="fas fa-pause"></i>
+    </button>
+    <button class="btn-control" onclick="adelantar()">
+      <i class="fas fa-redo"></i>
+    </button>
   </div>
 
-  <div id="progreso">
-    <div class="barra" id="barraProgreso"></div>
+  <div id="barra-container">
+    <div id="tiempos">
+      <span id="tiempoActual">0:00</span>
+      <span id="duracion">0:00</span>
+    </div>
+    <div id="progreso">
+      <div class="barra" id="barraProgreso"></div>
+    </div>
   </div>
+
+  <button id="btn-full" onclick="toggleFullscreen()">
+    <i class="fas fa-expand"></i>
+  </button>
 
   <script>
     function obtenerParametro(nombre) {
@@ -96,8 +158,10 @@
 
     var video = document.getElementById("video");
     var fondo = document.getElementById("fondo");
+    var toggleBtn = document.getElementById("togglePlay").querySelector("i");
     var barra = document.getElementById("barraProgreso");
-    var toggleBtn = document.getElementById("togglePlay");
+    var tiempoActual = document.getElementById("tiempoActual");
+    var duracion = document.getElementById("duracion");
 
     var codificado = obtenerParametro("video");
     if (!codificado) {
@@ -113,22 +177,26 @@
         } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
           video.src = url;
         } else {
-          alert("Tu navegador no soporta videos HLS.");
+          alert("Tu navegador no soporta HLS.");
         }
       } else {
         video.src = url;
       }
 
+      video.addEventListener("loadedmetadata", () => {
+        duracion.textContent = formatearTiempo(video.duration);
+      });
+
       video.addEventListener("play", () => {
         fondo.style.opacity = "0";
-        toggleBtn.textContent = "⏸️";
+        toggleBtn.className = "fas fa-pause";
       });
 
       video.addEventListener("pause", () => {
-        toggleBtn.textContent = "▶️";
+        toggleBtn.className = "fas fa-play";
       });
 
-      toggleBtn.addEventListener("click", () => {
+      document.getElementById("togglePlay").addEventListener("click", () => {
         if (video.paused) {
           video.play();
         } else {
@@ -137,6 +205,7 @@
       });
 
       video.addEventListener("timeupdate", () => {
+        tiempoActual.textContent = formatearTiempo(video.currentTime);
         var progreso = (video.currentTime / video.duration) * 100;
         barra.style.width = progreso + "%";
       });
@@ -149,7 +218,21 @@
     function adelantar() {
       video.currentTime += 10;
     }
-  </script>
 
+    function toggleFullscreen() {
+      if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen();
+      } else {
+        document.exitFullscreen();
+      }
+    }
+
+    function formatearTiempo(segundos) {
+      var min = Math.floor(segundos / 60);
+      var seg = Math.floor(segundos % 60);
+      if (seg < 10) seg = "0" + seg;
+      return `${min}:${seg}`;
+    }
+  </script>
 </body>
 </html>
