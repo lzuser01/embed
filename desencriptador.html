@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Reproductor con Imagen Inicial</title>
+  <title>Reproductor con Imagen de Inicio</title>
 
   <link rel="stylesheet" href="https://cdn.plyr.io/3.7.8/plyr.css" />
 
@@ -12,14 +12,9 @@
       margin: 0;
       padding: 0;
       height: 100%;
-      background: black;
+      width: 100%;
+      background: #000;
       overflow: hidden;
-    }
-
-    video {
-      height: 100vh;
-      width: 100vw;
-      object-fit: cover;
     }
 
     .plyr {
@@ -27,28 +22,43 @@
       width: 100vw !important;
     }
 
+    video {
+      height: 100%;
+      width: 100%;
+      object-fit: cover;
+      background: #000;
+    }
+
     .fondo-inicial {
       position: absolute;
-      inset: 0;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
       background: url('https://image.tmdb.org/t/p/original/ApRxyHFuvv5yghedxXPJSm9FEDe.jpg') center center/cover no-repeat;
-      z-index: 5;
-      transition: opacity 0.5s ease;
+      z-index: 10;
+      transition: opacity 0.4s ease;
       pointer-events: none;
     }
 
     .fondo-inicial.oculto {
       opacity: 0;
+      pointer-events: none;
     }
   </style>
 </head>
 <body>
 
-<video id="player" playsinline controls crossorigin></video>
+<!-- Contenedor del reproductor -->
+<div style="position: relative; width: 100vw; height: 100vh;">
+  <video id="player" playsinline controls crossorigin></video>
+  <div id="fondo" class="fondo-inicial"></div>
+</div>
 
 <script src="https://cdn.plyr.io/3.7.8/plyr.polyfilled.js"></script>
 
 <script>
-  // Obtener y decodificar parámetro
+  // Obtener el parámetro base64 de la URL
   function obtenerParametro(nombre) {
     var params = new URLSearchParams(window.location.search);
     return params.get(nombre);
@@ -67,7 +77,6 @@
   const video = document.getElementById('player');
   video.src = videoUrl;
 
-  // Iniciar Plyr
   const player = new Plyr(video, {
     controls: [
       'play-large',
@@ -83,16 +92,20 @@
     ]
   });
 
-  // Insertar imagen de fondo dentro del contenedor Plyr cuando esté listo
+  // Fondo inicial
+  const fondo = document.getElementById('fondo');
+
+  // Cuando se presiona play por primera vez, ocultar fondo
+  let yaInicio = false;
+  player.on('play', () => {
+    if (!yaInicio) {
+      fondo.classList.add('oculto');
+      yaInicio = true;
+    }
+  });
+
+  // Botones de adelantar y retroceder manualmente
   player.on('ready', () => {
-    const wrapper = document.querySelector('.plyr__video-wrapper');
-
-    var fondo = document.createElement('div');
-    fondo.className = 'fondo-inicial';
-    fondo.id = 'fondo';
-    wrapper.appendChild(fondo);
-
-    // Activar botones de adelantar/retroceder
     const rewindBtn = document.querySelector('.plyr__control[data-plyr="rewind"]');
     const forwardBtn = document.querySelector('.plyr__control[data-plyr="fast-forward"]');
 
@@ -107,11 +120,6 @@
         player.currentTime = Math.min(player.currentTime + 10, player.duration);
       });
     }
-
-    // Ocultar fondo al reproducir
-    player.on('play', () => {
-      fondo.classList.add('oculto');
-    });
   });
 </script>
 
