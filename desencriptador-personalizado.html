@@ -1,12 +1,12 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <title>Reproductor Personalizado</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta charset="UTF-8" />
+  <title>Reproductor Netflix Style</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
-  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet" />
   <style>
     html, body {
       margin: 0;
@@ -15,106 +15,98 @@
       height: 100%;
       overflow: hidden;
     }
-    #fondo {
-      position: absolute;
-      top: 0; left: 0;
-      width: 100%; height: 100%;
-      background-size: cover;
-      background-position: center;
-      z-index: 10;
-      transition: opacity 0.5s ease;
-    }
     video {
       width: 100%;
       height: 100%;
       object-fit: contain;
       background: black;
     }
-
+    #fondo {
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%;
+      height: 100%;
+      background-size: cover;
+      background-position: center;
+      z-index: 10;
+      transition: opacity 0.5s ease;
+    }
     #controles {
       position: absolute;
-      top: 50%;
-      left: 0;
-      right: 0;
+      top: 0; left: 0; right: 0; bottom: 0;
       z-index: 20;
       display: flex;
-      justify-content: space-between;
       align-items: center;
-      transform: translateY(-50%);
-      padding: 0 20px;
+      justify-content: space-between;
+      pointer-events: none;
+      opacity: 1;
+      transition: opacity 0.3s ease;
     }
-
-    .btn-control {
-      background: rgba(0, 0, 0, 0.6);
-      border: 2px solid gold;
+    .control-btn {
+      background: rgba(0,0,0,0.7);
       color: gold;
-      padding: 14px;
+      border: 2px solid gold;
       border-radius: 50%;
+      padding: 16px;
       font-size: 24px;
       cursor: pointer;
-      transition: background 0.3s ease;
+      pointer-events: all;
+      transition: background 0.2s;
     }
-
-    .btn-control:hover {
+    .control-btn:hover {
       background: rgba(255, 215, 0, 0.3);
     }
-
-    .center-btn {
+    #playPause {
       position: absolute;
       left: 50%;
       transform: translateX(-50%);
     }
-
     #barra-container {
       position: absolute;
-      bottom: 10px;
-      left: 0;
-      right: 0;
-      padding: 0 15px;
-      z-index: 20;
+      bottom: 0;
+      width: 100%;
+      padding: 10px 15px 20px;
+      z-index: 25;
       color: white;
-      font-size: 14px;
       font-family: sans-serif;
     }
-
+    #tiempos {
+      display: flex;
+      justify-content: space-between;
+      font-size: 13px;
+      margin-bottom: 4px;
+    }
     #progreso {
-      width: 100%;
       height: 4px;
       background: #333;
       border-radius: 2px;
       overflow: hidden;
-      margin: 4px 0;
       position: relative;
     }
-
     #progreso .barra {
       height: 100%;
       background: red;
       width: 0%;
     }
-
-    #tiempos {
-      display: flex;
-      justify-content: space-between;
-      margin-bottom: 4px;
-    }
-
-    #btn-full {
+    #fullscreen-btn {
       position: absolute;
       right: 20px;
-      bottom: 18px;
-      z-index: 25;
+      bottom: 26px;
       font-size: 18px;
       color: gold;
       background: rgba(0,0,0,0.6);
       border: 2px solid gold;
       border-radius: 50%;
       padding: 10px;
+      z-index: 30;
       cursor: pointer;
+      pointer-events: all;
     }
-
-    #btn-full:hover {
+    #fullscreen-btn:hover {
       background: rgba(255, 215, 0, 0.2);
+    }
+    .oculto {
+      opacity: 0 !important;
     }
   </style>
 </head>
@@ -122,16 +114,16 @@
 
   <div id="fondo" style="background-image: url('https://image.tmdb.org/t/p/original/ApRxyHFuvv5yghedxXPJSm9FEDe.jpg');"></div>
 
-  <video id="video" controls playsinline></video>
+  <video id="video" playsinline></video>
 
   <div id="controles">
-    <button class="btn-control" onclick="retroceder()">
+    <button class="control-btn ml-4" onclick="retroceder()">
       <i class="fas fa-undo"></i>
     </button>
-    <button class="btn-control center-btn" id="togglePlay">
+    <button class="control-btn" id="playPause">
       <i class="fas fa-pause"></i>
     </button>
-    <button class="btn-control" onclick="adelantar()">
+    <button class="control-btn mr-4" onclick="adelantar()">
       <i class="fas fa-redo"></i>
     </button>
   </div>
@@ -146,7 +138,7 @@
     </div>
   </div>
 
-  <button id="btn-full" onclick="toggleFullscreen()">
+  <button id="fullscreen-btn" onclick="toggleFullscreen()">
     <i class="fas fa-expand"></i>
   </button>
 
@@ -158,10 +150,12 @@
 
     var video = document.getElementById("video");
     var fondo = document.getElementById("fondo");
-    var toggleBtn = document.getElementById("togglePlay").querySelector("i");
     var barra = document.getElementById("barraProgreso");
+    var playBtn = document.getElementById("playPause").querySelector("i");
     var tiempoActual = document.getElementById("tiempoActual");
     var duracion = document.getElementById("duracion");
+    var controles = document.getElementById("controles");
+    var fullscreenBtn = document.getElementById("fullscreen-btn");
 
     var codificado = obtenerParametro("video");
     if (!codificado) {
@@ -189,19 +183,15 @@
 
       video.addEventListener("play", () => {
         fondo.style.opacity = "0";
-        toggleBtn.className = "fas fa-pause";
+        playBtn.className = "fas fa-pause";
       });
 
       video.addEventListener("pause", () => {
-        toggleBtn.className = "fas fa-play";
+        playBtn.className = "fas fa-play";
       });
 
-      document.getElementById("togglePlay").addEventListener("click", () => {
-        if (video.paused) {
-          video.play();
-        } else {
-          video.pause();
-        }
+      document.getElementById("playPause").addEventListener("click", () => {
+        video.paused ? video.play() : video.pause();
       });
 
       video.addEventListener("timeupdate", () => {
@@ -227,12 +217,35 @@
       }
     }
 
-    function formatearTiempo(segundos) {
-      var min = Math.floor(segundos / 60);
-      var seg = Math.floor(segundos % 60);
-      if (seg < 10) seg = "0" + seg;
-      return `${min}:${seg}`;
+    function formatearTiempo(seg) {
+      var min = Math.floor(seg / 60);
+      var s = Math.floor(seg % 60);
+      return `${min}:${s < 10 ? '0' + s : s}`;
     }
+
+    // 🔄 Ocultar controles después de inactividad
+    var timeout;
+    function mostrarControles() {
+      controles.classList.remove("oculto");
+      fullscreenBtn.classList.remove("oculto");
+      clearTimeout(timeout);
+      timeout = setTimeout(() => {
+        controles.classList.add("oculto");
+        fullscreenBtn.classList.add("oculto");
+      }, 5000);
+    }
+
+    document.addEventListener("mousemove", mostrarControles);
+    document.addEventListener("touchstart", mostrarControles);
+    document.addEventListener("click", (e) => {
+      if (!e.target.closest(".control-btn") && e.target.id !== "fullscreen-btn") {
+        controles.classList.add("oculto");
+        fullscreenBtn.classList.add("oculto");
+      }
+    });
+
+    mostrarControles(); // inicial
   </script>
+
 </body>
 </html>
