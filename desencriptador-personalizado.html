@@ -24,8 +24,7 @@
     #fondo {
       position: absolute;
       top: 0; left: 0;
-      width: 100%;
-      height: 100%;
+      width: 100%; height: 100%;
       background-size: cover;
       background-position: center;
       z-index: 10;
@@ -40,7 +39,7 @@
       justify-content: space-between;
       pointer-events: none;
       opacity: 1;
-      transition: opacity 0.3s ease;
+      transition: opacity 0.4s ease;
     }
     .control-btn {
       background: rgba(0,0,0,0.7);
@@ -51,10 +50,12 @@
       font-size: 24px;
       cursor: pointer;
       pointer-events: all;
-      transition: background 0.2s;
+      transition: all 0.3s ease;
+      transform: scale(1);
     }
     .control-btn:hover {
-      background: rgba(255, 215, 0, 0.3);
+      background: rgba(255, 215, 0, 0.2);
+      transform: scale(1.1);
     }
     #playPause {
       position: absolute;
@@ -69,6 +70,8 @@
       z-index: 25;
       color: white;
       font-family: sans-serif;
+      opacity: 1;
+      transition: opacity 0.4s ease;
     }
     #tiempos {
       display: flex;
@@ -87,6 +90,7 @@
       height: 100%;
       background: red;
       width: 0%;
+      transition: width 0.2s linear;
     }
     #fullscreen-btn {
       position: absolute;
@@ -101,9 +105,11 @@
       z-index: 30;
       cursor: pointer;
       pointer-events: all;
+      transition: all 0.3s ease;
     }
     #fullscreen-btn:hover {
       background: rgba(255, 215, 0, 0.2);
+      transform: scale(1.1);
     }
     .oculto {
       opacity: 0 !important;
@@ -121,7 +127,7 @@
       <i class="fas fa-undo"></i>
     </button>
     <button class="control-btn" id="playPause">
-      <i class="fas fa-pause"></i>
+      <i class="fas fa-play"></i>
     </button>
     <button class="control-btn mr-4" onclick="adelantar()">
       <i class="fas fa-redo"></i>
@@ -155,6 +161,7 @@
     var tiempoActual = document.getElementById("tiempoActual");
     var duracion = document.getElementById("duracion");
     var controles = document.getElementById("controles");
+    var barraContainer = document.getElementById("barra-container");
     var fullscreenBtn = document.getElementById("fullscreen-btn");
 
     var codificado = obtenerParametro("video");
@@ -223,14 +230,16 @@
       return `${min}:${s < 10 ? '0' + s : s}`;
     }
 
-    // 🔄 Ocultar controles después de inactividad
+    // Ocultar controles tras 5s o al hacer clic fuera
     var timeout;
     function mostrarControles() {
       controles.classList.remove("oculto");
+      barraContainer.classList.remove("oculto");
       fullscreenBtn.classList.remove("oculto");
       clearTimeout(timeout);
       timeout = setTimeout(() => {
         controles.classList.add("oculto");
+        barraContainer.classList.add("oculto");
         fullscreenBtn.classList.add("oculto");
       }, 5000);
     }
@@ -240,11 +249,12 @@
     document.addEventListener("click", (e) => {
       if (!e.target.closest(".control-btn") && e.target.id !== "fullscreen-btn") {
         controles.classList.add("oculto");
+        barraContainer.classList.add("oculto");
         fullscreenBtn.classList.add("oculto");
       }
     });
 
-    mostrarControles(); // inicial
+    mostrarControles(); // al iniciar
   </script>
 
 </body>
