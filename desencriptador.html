@@ -25,6 +25,7 @@
     height: 100%;
     background: black;
     display: block;
+    z-index: 10;
   }
   #fondo {
     position: absolute;
@@ -32,6 +33,7 @@
     background: url('https://image.tmdb.org/t/p/original/ApRxyHFuvv5yghedxXPJSm9FEDe.jpg') center center/cover no-repeat;
     transition: opacity 0.5s ease;
     z-index: 15;
+    pointer-events: none;
   }
   #controls {
     position: absolute;
@@ -145,7 +147,7 @@
 </head>
 <body>
 <div id="player-wrapper" tabindex="0">
-  <video id="video" preload="metadata" playsinline controlsList="nodownload"></video>
+  <video id="video" preload="metadata" playsinline controls></video>
   <div id="fondo"></div>
 
   <div id="controls">
@@ -365,6 +367,11 @@
     alert('No se encontró el parámetro de video.');
   }
 
+  // Actualizar icono al cargar o pausar el video
+  video.addEventListener('play', updatePlayPauseIcon);
+  video.addEventListener('pause', updatePlayPauseIcon);
+
+  // Mostrar controles inicialmente y ocultarlos luego
   updatePlayPauseIcon();
   showControls();
 </script>
