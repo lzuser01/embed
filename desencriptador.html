@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Reproductor Plyr Encriptado</title>
+<title>Reproductor Plyr con Adelantar y Retroceder</title>
 
 <!-- Plyr CSS -->
 <link rel="stylesheet" href="https://cdn.plyr.io/3.7.8/plyr.css" />
@@ -16,54 +16,25 @@
     width: 90vw;
     max-width: 900px;
   }
-  .plyr__controls {
-    background: rgba(0, 0, 0, 0.7) !important;
-  }
-  /* Botones personalizados */
-  #custom-controls {
-    margin-top: 10px;
-    display: flex;
-    justify-content: center;
-    gap: 20px;
-  }
-  #custom-controls button {
-    background: #ffcc00;
-    border: none;
-    color: #000;
-    font-weight: bold;
-    font-size: 1rem;
-    padding: 8px 16px;
-    border-radius: 8px;
-    cursor: pointer;
-    user-select: none;
-    transition: background-color 0.3s ease;
-  }
-  #custom-controls button:hover {
-    background: #e6b800;
-  }
 </style>
 </head>
 <body>
 
 <div id="player-container">
   <video id="player" playsinline controls crossorigin></video>
-
-  <div id="custom-controls">
-    <button id="rewindBtn" aria-label="Retroceder 10 segundos">⏪ 10s</button>
-    <button id="forwardBtn" aria-label="Adelantar 10 segundos">10s ⏩</button>
-  </div>
 </div>
 
 <!-- Plyr JS -->
 <script src="https://cdn.plyr.io/3.7.8/plyr.polyfilled.js"></script>
 
 <script>
-  // Obtener parámetro 'video' en base64 y decodificar
+  // Función para obtener parámetro URL
   function obtenerParametro(nombre) {
     var params = new URLSearchParams(window.location.search);
     return params.get(nombre);
   }
 
+  // Obtener video codificado en base64
   const base64video = obtenerParametro('video');
   if (!base64video) {
     alert('No se encontró el parámetro de video.');
@@ -79,24 +50,27 @@
   const video = document.getElementById('player');
   video.src = videoUrl;
 
+  // Configuración Plyr con controles incluyendo rewind y fast-forward
+  const controls = [
+    'play-large',
+    'play',
+    'rewind',
+    'fast-forward',
+    'progress',
+    'current-time',
+    'duration',
+    'mute',
+    'volume',
+    'fullscreen'
+  ];
+
   // Inicializar Plyr
-  const player = new Plyr(video, {
-    controls: [
-      'play-large', 'play', 'progress', 'current-time', 'duration', 'mute', 'volume', 'fullscreen'
-    ]
-  });
+  const player = new Plyr(video, { controls });
 
-  // Botones personalizados
-  const rewindBtn = document.getElementById('rewindBtn');
-  const forwardBtn = document.getElementById('forwardBtn');
-
-  rewindBtn.addEventListener('click', () => {
-    player.currentTime = Math.max(player.currentTime - 10, 0);
-  });
-
-  forwardBtn.addEventListener('click', () => {
-    player.currentTime = Math.min(player.currentTime + 10, player.duration);
-  });
+  // Ajustar tiempo de rewind y fast-forward (en segundos)
+  player.rewind = 10;
+  player.forward = 10;
 </script>
+
 </body>
 </html>
