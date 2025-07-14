@@ -2,10 +2,10 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8" />
-<title>Reproductor personalizado estilo Netflix</title>
+<title>Reproductor Clappr con diseño Netflix</title>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <script src="https://cdn.tailwindcss.com"></script>
-<script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+<script src="https://cdn.jsdelivr.net/npm/clappr@latest/dist/clappr.min.js"></script>
 <link
   rel="stylesheet"
   href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css"
@@ -16,24 +16,32 @@
     font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
     color: white;
   }
+  #player {
+    width: 100vw;
+    height: 100vh;
+    position: relative;
+    background: black;
+  }
+
   #fondo {
-    position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+    position: absolute;
+    top: 0; left: 0;
+    width: 100vw; height: 100vh;
     background: url('https://image.tmdb.org/t/p/original/ApRxyHFuvv5yghedxXPJSm9FEDe.jpg') center/cover no-repeat;
     z-index: 10;
     transition: opacity 0.5s ease;
   }
-  video {
-    width: 100%; height: 100%; object-fit: contain; background: black;
-    position: relative; z-index: 20;
-  }
+
   #contenedor {
-    position: relative;
-    height: 100vh;
+    position: absolute;
+    top: 0; left: 0;
+    width: 100vw; height: 100vh;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
-    z-index: 30;
     pointer-events: none;
+    z-index: 20;
+    user-select: none;
   }
   /* Top bar */
   #top-bar {
@@ -74,6 +82,10 @@
     align-items: center;
     font-size: 1.8rem;
     position: relative;
+    transition: transform 0.2s ease;
+  }
+  #middle-controls button:hover {
+    transform: scale(1.2);
   }
   #middle-controls button svg {
     width: 2.5rem;
@@ -155,6 +167,10 @@
     border: none;
     color: white;
     cursor: pointer;
+    transition: color 0.2s ease;
+  }
+  #bottom-bar button:hover {
+    color: #ff0000;
   }
   #bottom-bar button i {
     font-size: 1rem;
@@ -170,6 +186,10 @@
     font-size: 1.3rem;
     cursor: pointer;
     pointer-events: auto;
+    transition: transform 0.2s ease;
+  }
+  #fullscreen-btn:hover {
+    transform: scale(1.2);
   }
   /* Ocultar controles */
   .hidden-controls {
@@ -180,216 +200,230 @@
 </style>
 </head>
 <body>
-  <div id="fondo"></div>
-  <video id="video" playsinline></video>
 
-  <div id="contenedor">
-    <!-- Top bar -->
-    <div id="top-bar">
-      <button id="cast-btn" aria-label="Cast"><i class="fas fa-tv"></i></button>
-      <div class="titulo" id="titulo-episodio">P1:E1 “Episode 1”</div>
-      <button id="close-btn" aria-label="Close">&times;</button>
-    </div>
+<div id="player"></div>
+<div id="fondo"></div>
 
-    <!-- Middle controls -->
-    <div id="middle-controls">
-      <button id="rewind-btn" aria-label="Rewind 10 seconds">
-        <svg fill="none" stroke="white" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" >
-          <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 10.5L12 7.5m0 0L8.25 10.5M12 7.5v9"></path>
-          <circle cx="12" cy="12" r="9" stroke="white" stroke-width="2"></circle>
-        </svg>
-        <div class="btn-text">10</div>
-      </button>
-      <button id="play-pause-btn" class="play-btn" aria-label="Play/Pause">
-        <i class="fas fa-play"></i>
-      </button>
-      <button id="forward-btn" aria-label="Forward 10 seconds">
-        <svg fill="none" stroke="white" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" >
-          <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 13.5L12 16.5m0 0L15.75 13.5M12 16.5v-9"></path>
-          <circle cx="12" cy="12" r="9" stroke="white" stroke-width="2"></circle>
-        </svg>
-        <div class="btn-text">10</div>
-      </button>
-    </div>
-
-    <!-- Progress bar and time -->
-    <div id="progress-container">
-      <div id="progress-bar" aria-label="Barra de progreso" role="slider" tabindex="0">
-        <div class="played"></div>
-        <div class="thumb"></div>
-      </div>
-      <div id="time-display">0:00</div>
-    </div>
-
-    <!-- Bottom controls -->
-    <div id="bottom-bar">
-      <button id="episodios-btn"><i class="fas fa-tv"></i> Episodios</button>
-      <button id="audio-sub-btn"><i class="fas fa-comment-alt"></i> Audio y subtítulos</button>
-      <button id="next-episode-btn"><i class="fas fa-play"></i> Siguiente episodio</button>
-    </div>
+<div id="contenedor">
+  <!-- Top bar -->
+  <div id="top-bar">
+    <button id="cast-btn" aria-label="Cast"><i class="fas fa-tv"></i></button>
+    <div class="titulo" id="titulo-episodio">P1:E1 “Episode 1”</div>
+    <button id="close-btn" aria-label="Close">&times;</button>
   </div>
 
-  <button id="fullscreen-btn" aria-label="Pantalla completa">
-    <i class="fas fa-expand"></i>
-  </button>
+  <!-- Middle controls -->
+  <div id="middle-controls">
+    <button id="rewind-btn" aria-label="Rewind 10 seconds">
+      <svg fill="none" stroke="white" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" >
+        <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 10.5L12 7.5m0 0L8.25 10.5M12 7.5v9"></path>
+        <circle cx="12" cy="12" r="9" stroke="white" stroke-width="2"></circle>
+      </svg>
+      <div class="btn-text">10</div>
+    </button>
+    <button id="play-pause-btn" class="play-btn" aria-label="Play/Pause">
+      <i class="fas fa-play"></i>
+    </button>
+    <button id="forward-btn" aria-label="Forward 10 seconds">
+      <svg fill="none" stroke="white" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" >
+        <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 13.5L12 16.5m0 0L15.75 13.5M12 16.5v-9"></path>
+        <circle cx="12" cy="12" r="9" stroke="white" stroke-width="2"></circle>
+      </svg>
+      <div class="btn-text">10</div>
+    </button>
+  </div>
+
+  <!-- Progress bar and time -->
+  <div id="progress-container">
+    <div id="progress-bar" aria-label="Barra de progreso" role="slider" tabindex="0">
+      <div class="played"></div>
+      <div class="thumb"></div>
+    </div>
+    <div id="time-display">0:00</div>
+  </div>
+
+  <!-- Bottom controls -->
+  <div id="bottom-bar">
+    <button id="episodios-btn"><i class="fas fa-tv"></i> Episodios</button>
+    <button id="audio-sub-btn"><i class="fas fa-comment-alt"></i> Audio y subtítulos</button>
+    <button id="next-episode-btn"><i class="fas fa-play"></i> Siguiente episodio</button>
+  </div>
+</div>
+
+<button id="fullscreen-btn" aria-label="Pantalla completa">
+  <i class="fas fa-expand"></i>
+</button>
 
 <script>
-  const video = document.getElementById('video');
-  const fondo = document.getElementById('fondo');
-  const playPauseBtn = document.getElementById('play-pause-btn');
-  const playPauseIcon = playPauseBtn.querySelector('i');
-  const rewindBtn = document.getElementById('rewind-btn');
-  const forwardBtn = document.getElementById('forward-btn');
-  const progressBar = document.getElementById('progress-bar');
-  const playedBar = progressBar.querySelector('.played');
-  const thumb = progressBar.querySelector('.thumb');
-  const timeDisplay = document.getElementById('time-display');
-  const fullscreenBtn = document.getElementById('fullscreen-btn');
-  const contenedor = document.getElementById('contenedor');
-  const topBar = document.getElementById('top-bar');
-  const middleControls = document.getElementById('middle-controls');
-  const bottomBar = document.getElementById('bottom-bar');
-
-  // Ocultar controles tras 5s
-  let hideTimeout;
-
-  function mostrarControles() {
-    contenedor.classList.remove('hidden-controls');
-    fullscreenBtn.classList.remove('hidden-controls');
-    resetHideTimeout();
-  }
-
-  function ocultarControles() {
-    contenedor.classList.add('hidden-controls');
-    fullscreenBtn.classList.add('hidden-controls');
-  }
-
-  function resetHideTimeout() {
-    if (hideTimeout) clearTimeout(hideTimeout);
-    hideTimeout = setTimeout(ocultarControles, 5000);
-  }
-
-  // Manejo de play/pause
-  playPauseBtn.addEventListener('click', () => {
-    if(video.paused) {
-      video.play();
-    } else {
-      video.pause();
-    }
-  });
-
-  video.addEventListener('play', () => {
-    playPauseIcon.className = 'fas fa-pause';
-    fondo.style.opacity = '0';
-    mostrarControles();
-  });
-
-  video.addEventListener('pause', () => {
-    playPauseIcon.className = 'fas fa-play';
-    mostrarControles();
-  });
-
-  // Rewind 10s
-  rewindBtn.addEventListener('click', () => {
-    video.currentTime = Math.max(0, video.currentTime - 10);
-    mostrarControles();
-  });
-
-  // Forward 10s
-  forwardBtn.addEventListener('click', () => {
-    video.currentTime = Math.min(video.duration, video.currentTime + 10);
-    mostrarControles();
-  });
-
-  // Actualizar barra de progreso y tiempo
-  video.addEventListener('timeupdate', () => {
-    const percent = (video.currentTime / video.duration) * 100;
-    playedBar.style.width = percent + '%';
-    thumb.style.left = percent + '%';
-    timeDisplay.textContent = formatTime(video.currentTime);
-  });
-
-  // Mostrar duración al cargar metadata
-  video.addEventListener('loadedmetadata', () => {
-    // Solo para mostrar duración, pero no está visible en diseño actual
-    // Puedes agregar si quieres otro elemento para duración total
-  });
-
-  // Barra de progreso click y drag
-  progressBar.addEventListener('click', (e) => {
-    const rect = progressBar.getBoundingClientRect();
-    const clickX = e.clientX - rect.left;
-    const newTime = (clickX / rect.width) * video.duration;
-    video.currentTime = newTime;
-  });
-
-  // Fullscreen toggle
-  fullscreenBtn.addEventListener('click', () => {
-    if(!document.fullscreenElement) {
-      document.documentElement.requestFullscreen();
-      fullscreenBtn.querySelector('i').className = 'fas fa-compress';
-    } else {
-      document.exitFullscreen();
-      fullscreenBtn.querySelector('i').className = 'fas fa-expand';
-    }
-    mostrarControles();
-  });
-
-  // Detectar cambios fullscreen para cambiar icono
-  document.addEventListener('fullscreenchange', () => {
-    if(!document.fullscreenElement) {
-      fullscreenBtn.querySelector('i').className = 'fas fa-expand';
-    } else {
-      fullscreenBtn.querySelector('i').className = 'fas fa-compress';
-    }
-  });
-
-  // Mostrar controles al mover mouse o tocar pantalla
-  ['mousemove', 'touchstart'].forEach(evt => {
-    document.addEventListener(evt, () => {
-      mostrarControles();
-    });
-  });
-
-  // Ocultar controles al hacer click fuera de botones
-  document.addEventListener('click', e => {
-    if(!e.target.closest('#contenedor') && !e.target.closest('#fullscreen-btn')) {
-      ocultarControles();
-    }
-  });
-
-  // Formatear tiempo en mm:ss
-  function formatTime(seconds) {
-    const m = Math.floor(seconds / 60);
-    const s = Math.floor(seconds % 60);
-    return m + ':' + (s < 10 ? '0' + s : s);
-  }
-
-  // Cargar video desde enlace encriptado
   function obtenerParametro(nombre) {
-    const params = new URLSearchParams(window.location.search);
+    var params = new URLSearchParams(window.location.search);
     return params.get(nombre);
   }
-  const codificado = obtenerParametro('video');
 
+  var codificado = obtenerParametro("video");
   if (!codificado) {
     document.body.innerHTML = '<p class="text-white text-center text-xl">❌ Enlace inválido</p>';
   } else {
-    const url = atob(codificado);
+    var url = atob(codificado);
 
-    if (url.endsWith('.m3u8')) {
-      if (Hls.isSupported()) {
-        const hls = new Hls();
-        hls.loadSource(url);
-        hls.attachMedia(video);
-      } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
-        video.src = url;
-      } else {
-        alert('Tu navegador no soporta HLS.');
+    var player = new Clappr.Player({
+      source: url,
+      parentId: "#player",
+      width: "100%",
+      height: "100%",
+      autoPlay: false,
+      poster: "https://image.tmdb.org/t/p/original/ApRxyHFuvv5yghedxXPJSm9FEDe.jpg",
+      mute: false,
+      mediacontrol: { seekbar: "#ffc107", buttons: "#fff" },
+    });
+
+    // Referencias a controles personalizados
+    var contenedor = document.getElementById('contenedor');
+    var fondo = document.getElementById('fondo');
+    var playPauseBtn = document.getElementById('play-pause-btn');
+    var playPauseIcon = playPauseBtn.querySelector('i');
+    var rewindBtn = document.getElementById('rewind-btn');
+    var forwardBtn = document.getElementById('forward-btn');
+    var progressBar = document.getElementById('progress-bar');
+    var playedBar = progressBar.querySelector('.played');
+    var thumb = progressBar.querySelector('.thumb');
+    var timeDisplay = document.getElementById('time-display');
+    var fullscreenBtn = document.getElementById('fullscreen-btn');
+
+    var hideTimeout;
+    var isHovering = false;
+
+    function mostrarControles() {
+      contenedor.classList.remove('hidden-controls');
+      fullscreenBtn.classList.remove('hidden-controls');
+      if(hideTimeout) clearTimeout(hideTimeout);
+      if(!isHovering) {
+        hideTimeout = setTimeout(() => {
+          ocultarControles();
+        }, 5000);
       }
-    } else {
-      video.src = url;
     }
+    function ocultarControles() {
+      contenedor.classList.add('hidden-controls');
+      fullscreenBtn.classList.add('hidden-controls');
+    }
+
+    // Ocultar controles al cargar
+    ocultarControles();
+
+    // Actualizar icono play/pause
+    function actualizarIcono() {
+      if (player.isPlaying()) {
+        playPauseIcon.className = 'fas fa-pause';
+        fondo.style.opacity = '0';
+      } else {
+        playPauseIcon.className = 'fas fa-play';
+        fondo.style.opacity = '1';
+      }
+    }
+
+    // Play/pause toggle
+    playPauseBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (player.isPlaying()) {
+        player.pause();
+      } else {
+        player.play();
+      }
+      mostrarControles();
+    });
+
+    // Adelantar y retroceder 10s
+    rewindBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      var current = player.getCurrentTime();
+      player.seek(Math.max(current - 10, 0));
+      mostrarControles();
+    });
+    forwardBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      var current = player.getCurrentTime();
+      var duration = player.getDuration();
+      player.seek(Math.min(current + 10, duration));
+      mostrarControles();
+    });
+
+    // Actualizar barra de progreso y tiempo
+    player.listenTo(player, Clappr.Events.PLAYER_TIMEUPDATE, () => {
+      var current = player.getCurrentTime();
+      var duration = player.getDuration();
+      if(duration > 0){
+        var percent = (current / duration) * 100;
+        playedBar.style.width = percent + '%';
+        thumb.style.left = percent + '%';
+        timeDisplay.textContent = formatTime(current) + ' / ' + formatTime(duration);
+      }
+    });
+
+    // Barra de progreso clickable
+    progressBar.addEventListener('click', (e) => {
+      e.stopPropagation();
+      var rect = progressBar.getBoundingClientRect();
+      var clickX = e.clientX - rect.left;
+      var newTime = (clickX / rect.width) * player.getDuration();
+      player.seek(newTime);
+      mostrarControles();
+    });
+
+    // Mostrar controles al mover mouse o tocar pantalla
+    ['mousemove', 'touchstart'].forEach(evt => {
+      document.addEventListener(evt, () => {
+        mostrarControles();
+      });
+    });
+
+    // Ocultar controles al hacer click fuera de controles
+    document.addEventListener('click', (e) => {
+      if (!contenedor.contains(e.target) && e.target !== fullscreenBtn) {
+        ocultarControles();
+      }
+    });
+
+    // Fullscreen toggle
+    fullscreenBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen();
+        fullscreenBtn.querySelector('i').className = 'fas fa-compress';
+      } else {
+        document.exitFullscreen();
+        fullscreenBtn.querySelector('i').className = 'fas fa-expand';
+      }
+      mostrarControles();
+    });
+
+    document.addEventListener('fullscreenchange', () => {
+      if (!document.fullscreenElement) {
+        fullscreenBtn.querySelector('i').className = 'fas fa-expand';
+      } else {
+        fullscreenBtn.querySelector('i').className = 'fas fa-compress';
+      }
+    });
+
+    // Actualizar icono cuando cambia estado de play
+    player.listenTo(player, Clappr.Events.PLAYER_PLAY, actualizarIcono);
+    player.listenTo(player, Clappr.Events.PLAYER_PAUSE, actualizarIcono);
+
+    // Cuando el reproductor esté listo, inserta controles dentro del contenedor Clappr para mejor overlay
+    player.listenTo(player, Clappr.Events.PLAYER_READY, () => {
+      var clapprContainer = document.querySelector("#player .player");
+      if (clapprContainer) {
+        clapprContainer.style.position = "relative";
+        clapprContainer.appendChild(contenedor);
+      }
+    });
+  }
+  
+  function formatTime(seconds) {
+    if (isNaN(seconds)) return '0:00';
+    var m = Math.floor(seconds / 60);
+    var s = Math.floor(seconds % 60);
+    return m + ':' + (s < 10 ? '0' + s : s);
   }
 </script>
 </body>
