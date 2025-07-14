@@ -3,48 +3,54 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Reproductor Plyr con Adelantar y Retroceder</title>
+  <title>Reproductor Pantalla Completa</title>
 
   <!-- Plyr CSS -->
   <link rel="stylesheet" href="https://cdn.plyr.io/3.7.8/plyr.css" />
 
   <style>
-    body, html {
+    html, body {
       margin: 0;
       padding: 0;
       height: 100%;
+      width: 100%;
       background: #000;
-      display: flex;
-      justify-content: center;
-      align-items: center;
+      overflow: hidden;
     }
-    #player-container {
-      width: 90vw;
-      max-width: 900px;
+
+    video {
+      height: 100vh;
+      width: 100vw;
+      object-fit: cover;
+    }
+
+    .plyr__video-wrapper {
+      height: 100vh !important;
+      width: 100vw !important;
+    }
+
+    .plyr {
+      height: 100vh !important;
+      width: 100vw !important;
     }
   </style>
 </head>
 <body>
 
-<div id="player-container">
-  <video id="player" playsinline controls crossorigin></video>
-</div>
+<video id="player" playsinline controls crossorigin></video>
 
 <!-- Plyr JS -->
 <script src="https://cdn.plyr.io/3.7.8/plyr.polyfilled.js"></script>
 
 <script>
-  // Función para obtener parámetro de URL
+  // Obtener el parámetro base64
   function obtenerParametro(nombre) {
     var params = new URLSearchParams(window.location.search);
     return params.get(nombre);
   }
 
-  // Decodificar enlace base64
   const base64video = obtenerParametro('video');
-  if (!base64video) {
-    alert('No se encontró el parámetro de video.');
-  }
+  if (!base64video) alert('No se encontró el parámetro de video.');
 
   let videoUrl = '';
   try {
@@ -53,31 +59,29 @@
     alert('Error al decodificar la URL del video.');
   }
 
-  // Asignar URL al video
   const video = document.getElementById('player');
   video.src = videoUrl;
 
-  // Inicializar Plyr
-  const controls = [
-    'play-large',
-    'play',
-    'rewind',
-    'fast-forward',
-    'progress',
-    'current-time',
-    'duration',
-    'mute',
-    'volume',
-    'fullscreen'
-  ];
+  // Configurar Plyr con botones de retroceso y adelanto
+  const player = new Plyr(video, {
+    controls: [
+      'play-large',
+      'play',
+      'rewind',
+      'fast-forward',
+      'progress',
+      'current-time',
+      'duration',
+      'mute',
+      'volume',
+      'fullscreen'
+    ]
+  });
 
-  const player = new Plyr(video, { controls });
-
-  // Cuando Plyr esté listo
+  // Activar botones personalizados
   player.on('ready', () => {
-    // Botones de adelantar y retroceder
-    const rewindBtn = document.querySelector('.plyr__controls .plyr__control[data-plyr="rewind"]');
-    const forwardBtn = document.querySelector('.plyr__controls .plyr__control[data-plyr="fast-forward"]');
+    const rewindBtn = document.querySelector('.plyr__control[data-plyr="rewind"]');
+    const forwardBtn = document.querySelector('.plyr__control[data-plyr="fast-forward"]');
 
     if (rewindBtn) {
       rewindBtn.addEventListener('click', () => {
