@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>Generador de enlace base64 - LzEmbed</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #111; color: #fff; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; margin: 0;
+      padding: 1rem;
+    }
+    input, textarea, button {
+      font-size: 1rem;
+      width: 100%;
+      max-width: 500px;
+      margin: 0.5rem 0;
+      padding: 0.5rem;
+      border-radius: 6px;
+      border: none;
+    }
+    input, textarea {
+      background: #222;
+      color: #fff;
+      resize: vertical;
+    }
+    button {
+      background: #fbbf24;
+      color: #111;
+      font-weight: bold;
+      cursor: pointer;
+      border: none;
+      transition: background 0.3s ease;
+    }
+    button:hover {
+      background: #d19b18;
+    }
+    label {
+      margin-top: 1rem;
+      font-weight: bold;
+      color: #fbbf24;
+    }
+    #resultado {
+      background: #222;
+      color: #fbbf24;
+      font-family: monospace;
+      padding: 0.5rem;
+      border-radius: 6px;
+      white-space: nowrap;
+      user-select: all;
+    }
+  </style>
+</head>
+<body>
+  <h1>Generador de enlace base64</h1>
+  <label for="url">Ingresa URL del video (.mp4 o .m3u8):</label>
+  <input type="text" id="url" placeholder="https://..." autocomplete="off" />
+  
+  <button id="generarBtn">Generar enlace base64</button>
+  
+  <label for="resultado">Enlace codificado (base64):</label>
+  <textarea id="resultado" rows="3" readonly></textarea>
+
+  <label for="playerLink">Link completo para el reproductor:</label>
+  <textarea id="playerLink" rows="2" readonly></textarea>
+
+  <script>
+    var inputUrl = document.getElementById('url');
+    var btn = document.getElementById('generarBtn');
+    var resultado = document.getElementById('resultado');
+    var playerLink = document.getElementById('playerLink');
+
+    function base64Encode(str) {
+      try {
+        return btoa(encodeURIComponent(str).replace(/%([0-9A-F]{2})/g,
+          function(match, p1) {
+            return String.fromCharCode('0x' + p1);
+          }
+        ));
+      } catch(e) {
+        return btoa(str);
+      }
+    }
+
+    btn.addEventListener('click', function(){
+      var url = inputUrl.value.trim();
+      if (!url) {
+        alert('Por favor ingresa una URL válida');
+        return;
+      }
+      var encoded = base64Encode(url);
+      resultado.value = encoded;
+      // Cambia la ruta del reproductor según dónde subas player.html
+      playerLink.value = window.location.origin + '/player.html?video=' + encoded;
+    });
+  </script>
+</body>
+</html>
