@@ -145,7 +145,7 @@
 </head>
 <body>
 <div id="player-wrapper" tabindex="0">
-  <video id="video" preload="metadata" playsinline></video>
+  <video id="video" preload="metadata" playsinline controlsList="nodownload"></video>
   <div id="fondo"></div>
 
   <div id="controls">
@@ -165,7 +165,7 @@
 
     <div id="middle-controls">
       <button
-        aria-label="Rewind 10 seconds"
+        aria-label="Retroceder 10 segundos"
         id="rewindBtn"
         title="Retroceder 10 segundos"
       >
@@ -196,7 +196,7 @@
       </button>
 
       <button
-        aria-label="Forward 10 seconds"
+        aria-label="Adelantar 10 segundos"
         id="forwardBtn"
         title="Adelantar 10 segundos"
       >
@@ -356,7 +356,6 @@
   if (base64video) {
     try {
       const url = atob(base64video);
-      // Si quieres agregar lógica para validar URL o detectar si es m3u8 o mp4, aquí se puede.
       video.src = url;
       video.load();
     } catch {
