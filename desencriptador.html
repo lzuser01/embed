@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Reproductor Pantalla Completa</title>
+  <title>Reproductor con Imagen Inicial</title>
 
   <!-- Plyr CSS -->
   <link rel="stylesheet" href="https://cdn.plyr.io/3.7.8/plyr.css" />
@@ -18,26 +18,44 @@
       overflow: hidden;
     }
 
-    video {
-      height: 100vh;
+    #player-container {
+      position: relative;
       width: 100vw;
+      height: 100vh;
+    }
+
+    video {
+      height: 100%;
+      width: 100%;
       object-fit: cover;
     }
 
-    .plyr__video-wrapper {
-      height: 100vh !important;
-      width: 100vw !important;
+    .plyr__video-wrapper,
+    .plyr {
+      height: 100% !important;
+      width: 100% !important;
     }
 
-    .plyr {
-      height: 100vh !important;
-      width: 100vw !important;
+    #fondo {
+      position: absolute;
+      inset: 0;
+      background: url('https://image.tmdb.org/t/p/original/fQOV47FHTJdaSuSUNlzP3zXUZWE.jpg') center center/cover no-repeat;
+      z-index: 10;
+      transition: opacity 0.5s ease;
+    }
+
+    #fondo.oculto {
+      opacity: 0;
+      pointer-events: none;
     }
   </style>
 </head>
 <body>
 
-<video id="player" playsinline controls crossorigin></video>
+<div id="player-container">
+  <video id="player" playsinline controls crossorigin></video>
+  <div id="fondo"></div>
+</div>
 
 <!-- Plyr JS -->
 <script src="https://cdn.plyr.io/3.7.8/plyr.polyfilled.js"></script>
@@ -62,7 +80,6 @@
   const video = document.getElementById('player');
   video.src = videoUrl;
 
-  // Configurar Plyr con botones de retroceso y adelanto
   const player = new Plyr(video, {
     controls: [
       'play-large',
@@ -78,7 +95,7 @@
     ]
   });
 
-  // Activar botones personalizados
+  // Botones rewind/forward funcionales
   player.on('ready', () => {
     const rewindBtn = document.querySelector('.plyr__control[data-plyr="rewind"]');
     const forwardBtn = document.querySelector('.plyr__control[data-plyr="fast-forward"]');
@@ -93,6 +110,17 @@
       forwardBtn.addEventListener('click', () => {
         player.currentTime = Math.min(player.currentTime + 10, player.duration);
       });
+    }
+  });
+
+  // Ocultar fondo al dar play por primera vez
+  const fondo = document.getElementById('fondo');
+  let yaInicio = false;
+
+  player.on('play', () => {
+    if (!yaInicio) {
+      fondo.classList.add('oculto');
+      yaInicio = true;
     }
   });
 </script>
