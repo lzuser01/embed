@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Reproductor Personalizado</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      background: black;
+      height: 100%;
+      overflow: hidden;
+    }
+    #fondo {
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%;
+      height: 100%;
+      background-size: cover;
+      background-position: center;
+      z-index: 10;
+      transition: opacity 0.5s ease;
+    }
+    #controles {
+      position: absolute;
+      bottom: 30px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      gap: 20px;
+      z-index: 20;
+    }
+    .btn-control {
+      background: rgba(0,0,0,0.7);
+      color: gold;
+      border: 2px solid gold;
+      padding: 12px 16px;
+      border-radius: 9999px;
+      font-size: 18px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+    .btn-control:hover {
+      background: rgba(255, 215, 0, 0.3);
+    }
+    #progreso {
+      width: 90%;
+      height: 8px;
+      background: #444;
+      border-radius: 5px;
+      overflow: hidden;
+      position: absolute;
+      bottom: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 20;
+    }
+    #progreso .barra {
+      height: 100%;
+      background: gold;
+      width: 0%;
+    }
+    video {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      background: black;
+    }
+  </style>
+</head>
+<body>
+
+  <div id="fondo" style="background-image: url('https://image.tmdb.org/t/p/original/ApRxyHFuvv5yghedxXPJSm9FEDe.jpg');"></div>
+
+  <video id="video" controls playsinline></video>
+
+  <div id="controles">
+    <button class="btn-control" onclick="retroceder()">⏪ 10s</button>
+    <button class="btn-control" id="togglePlay">⏸️</button>
+    <button class="btn-control" onclick="adelantar()">10s ⏩</button>
+  </div>
+
+  <div id="progreso">
+    <div class="barra" id="barraProgreso"></div>
+  </div>
+
+  <script>
+    function obtenerParametro(nombre) {
+      var params = new URLSearchParams(window.location.search);
+      return params.get(nombre);
+    }
+
+    var video = document.getElementById("video");
+    var fondo = document.getElementById("fondo");
+    var barra = document.getElementById("barraProgreso");
+    var toggleBtn = document.getElementById("togglePlay");
+
+    var codificado = obtenerParametro("video");
+    if (!codificado) {
+      document.body.innerHTML = '<p class="text-white text-center text-xl">❌ Enlace inválido</p>';
+    } else {
+      var url = atob(codificado);
+
+      if (url.endsWith(".m3u8")) {
+        if (Hls.isSupported()) {
+          var hls = new Hls();
+          hls.loadSource(url);
+          hls.attachMedia(video);
+        } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+          video.src = url;
+        } else {
+          alert("Tu navegador no soporta videos HLS.");
+        }
+      } else {
+        video.src = url;
+      }
+
+      video.addEventListener("play", () => {
+        fondo.style.opacity = "0";
+        toggleBtn.textContent = "⏸️";
+      });
+
+      video.addEventListener("pause", () => {
+        toggleBtn.textContent = "▶️";
+      });
+
+      toggleBtn.addEventListener("click", () => {
+        if (video.paused) {
+          video.play();
+        } else {
+          video.pause();
+        }
+      });
+
+      video.addEventListener("timeupdate", () => {
+        var progreso = (video.currentTime / video.duration) * 100;
+        barra.style.width = progreso + "%";
+      });
+    }
+
+    function retroceder() {
+      video.currentTime -= 10;
+    }
+
+    function adelantar() {
+      video.currentTime += 10;
+    }
+  </script>
+
+</body>
+</html>
