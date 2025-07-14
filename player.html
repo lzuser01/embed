@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>Reproductor LzEmbed</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <!-- Plyr CSS -->
+  <link rel="stylesheet" href="https://cdn.plyr.io/3.7.8/plyr.css" />
+  <!-- FontAwesome -->
+  <link
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    rel="stylesheet"
+  />
+  <style>
+    body {
+      margin: 0; background: #111; display: flex; justify-content: center; align-items: center; height: 100vh;
+      color: #fff;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+    #player-container {
+      max-width: 900px; width: 100%;
+    }
+    /* Plyr overrides for custom button colors */
+    .plyr--full-ui input[type=range] {
+      accent-color: #fbbf24; /* dorado */
+    }
+    .plyr--full-ui button {
+      color: #fbbf24;
+    }
+  </style>
+</head>
+<body>
+  <div id="player-container">
+    <video
+      id="player"
+      playsinline
+      controls
+      crossorigin="anonymous"
+      poster=""
+    ></video>
+  </div>
+
+  <!-- hls.js -->
+  <script src="https://cdn.jsdelivr.net/npm/hls.js@1.4.0/dist/hls.min.js"></script>
+  <!-- Plyr.js -->
+  <script src="https://cdn.plyr.io/3.7.8/plyr.polyfilled.js"></script>
+  <script>
+    // Siempre usar var por preferencia de Lz
+    var params = new URLSearchParams(window.location.search);
+    var encodedVideo = params.get('video');
+    if (!encodedVideo) {
+      alert('Error: no se recibió el parámetro video en base64');
+      throw new Error('No video param');
+    }
+    // función para base64 decode en UTF-8
+    function base64Decode(str) {
+      try {
+        // decodeURIComponent + escape para soportar UTF-8
+        return decodeURIComponent(atob(str).split('').map(function(c) {
+          return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+        }).join(''));
+      } catch (e) {
+        // fallback simple atob
+        return atob(str);
+      }
+    }
+    var videoUrl = base64Decode(encodedVideo);
+
+    // Inicializar Plyr con controles personalizados
+    var controls = [
+      'play-large', // boton grande central
+      'play', // boton play/pause
+      'rewind', // 10s atrás
+      'fast-forward', // 10s adelante
+      'progress',
+      'current-time',
+      'duration',
+      'mute',
+      'volume',
+      'settings', // incluye calidad
+      'fullscreen'
+    ];
+
+    var playerElement = document.getElementById('player');
+    var isHls = videoUrl.toLowerCase().endsWith('.m3u8');
+    var player;
+
+    if (isHls && Hls.isSupported()) {
+      // Usamos hls.js para reproducir HLS
+      var hls = new Hls({
+        maxBufferLength: 30,
+        capLevelToPlayerSize: true
+      });
+      hls.loadSource(videoUrl);
+      hls.attachMedia(playerElement);
+      hls.on(Hls.Events.MANIFEST_PARSED, function(event, data) {
+        var qualityLevels = data.levels.map(function(l, i) {
+          return {
+            label: l.height + 'p',
+            value: i
+          };
+        });
+
+        player = new Plyr(playerElement, {
+          controls: controls,
+          settings: ['quality', 'speed', 'loop'],
+          quality: {
+            default: qualityLevels.length > 0 ? qualityLevels.length - 1 : 0,
+            options: qualityLevels.map(q => q.value),
+            forced: true,
+            onChange: function(newQuality) {
+              hls.currentLevel = newQuality;
+            }
+          }
+        });
+      });
+    } else {
+      player = new Plyr(playerElement, {
+        controls: controls,
+        settings: ['speed', 'loop'],
+      });
+      playerElement.src = videoUrl;
+    }
+
+    document.addEventListener('fullscreenchange', function() {
+      if (document.fullscreenElement) {
+        player.showControls(true);
+      }
+    });
+  </script>
+</body>
+</html>
