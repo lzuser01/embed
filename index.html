@@ -1,92 +1,49 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Generador de Enlace Encriptado</title>
-<script src="https://cdn.tailwindcss.com"></script>
-<style>
-  body {
-    background: #000;
-    color: #facc15; /* amarillo dorado */
-    font-family: Arial, sans-serif;
-    height: 100vh;
-    margin: 0;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-  }
-  input, button, textarea {
-    background: #111;
-    border: 1px solid #facc15;
-    color: #facc15;
-    padding: 0.75rem;
-    margin: 0.5rem 0;
-    border-radius: 5px;
-    width: 90vw;
-    max-width: 600px;
-    font-size: 1rem;
-  }
-  button {
-    cursor: pointer;
-    font-weight: 700;
-    transition: background-color 0.3s ease;
-  }
-  button:hover {
-    background-color: #facc15;
-    color: #000;
-  }
-  label {
-    font-weight: 700;
-    margin-top: 1rem;
-  }
-  textarea {
-    height: 5rem;
-    resize: none;
-  }
-</style>
+  <meta charset="UTF-8">
+  <title>Generador Enlace Encriptado</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body>
-  <h1 class="text-3xl mb-6">Generador de enlace encriptado para reproductor</h1>
-
-  <label for="videoUrl">URL del video (mp4 o m3u8):</label>
-  <input type="url" id="videoUrl" placeholder="https://example.com/video.mp4" />
-
-  <button id="generateBtn">Generar enlace encriptado</button>
-
-  <label for="result">Enlace generado:</label>
-  <textarea id="result" readonly placeholder="Aquí aparecerá el enlace"></textarea>
+<body class="bg-black text-white min-h-screen flex items-center justify-center p-4">
+  <div class="w-full max-w-xl bg-gray-900 rounded-2xl shadow-lg p-6">
+    <h1 class="text-2xl font-bold mb-4 text-center text-yellow-400">🔐 Generador Enlace Encriptado</h1>
+    <label class="block mb-2">🎬 Enlace del video MP4 o M3U8:</label>
+    <input id="videoUrl" type="text" placeholder="https://servidor.com/video.mp4" class="w-full p-3 rounded bg-gray-800 text-white outline-none mb-4" />
+    
+    <button onclick="generar()" class="bg-yellow-500 hover:bg-yellow-600 text-black px-4 py-2 rounded w-full font-bold">Generar enlace seguro</button>
+    
+    <div id="resultado" class="mt-6 hidden">
+      <label class="block mb-2 mt-4">🔗 Enlace generado:</label>
+      <input id="linkFinal" readonly class="w-full p-3 rounded bg-gray-700 text-white mb-2" />
+      <button onclick="copiar()" class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded w-full font-bold">📋 Copiar enlace</button>
+    </div>
+  </div>
 
   <script>
-    const generateBtn = document.getElementById('generateBtn');
-    const videoUrlInput = document.getElementById('videoUrl');
-    const resultArea = document.getElementById('result');
+    function generar() {
+      var url = document.getElementById('videoUrl').value.trim();
+      if (!url) return alert("Ingresa un enlace válido");
 
-    // URL base del desencriptador (ajústalo si cambia)
-    const desencriptadorBase = window.location.origin + window.location.pathname.replace(/generador\.html$/, 'desencriptador.html');
-
-    generateBtn.addEventListener('click', () => {
-      const url = videoUrlInput.value.trim();
-      if (!url) {
-        alert('Por favor ingresa una URL válida.');
-        return;
-      }
       try {
-        // Encode en base64 (sin saltos de línea)
-        const base64 = btoa(url);
-
-        // Construir enlace completo
-        const enlace = desencriptadorBase + '?video=' + encodeURIComponent(base64);
-
-        resultArea.value = enlace;
-        resultArea.select();
-        document.execCommand('copy');
-        alert('Enlace generado y copiado al portapapeles.');
+        var codificado = btoa(url);
       } catch(e) {
-        alert('Error al generar el enlace: ' + e.message);
+        return alert("Error al codificar la URL.");
       }
-    });
+
+      var final = "https://lzuser01.github.io/web/desencriptador.html?video=" + codificado;
+      document.getElementById('linkFinal').value = final;
+      document.getElementById('resultado').classList.remove('hidden');
+    }
+
+    function copiar() {
+      var enlace = document.getElementById("linkFinal");
+      enlace.select();
+      enlace.setSelectionRange(0, 99999);
+      document.execCommand("copy");
+      alert("¡Enlace copiado!");
+    }
   </script>
 </body>
 </html>
